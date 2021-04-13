@@ -1,0 +1,208 @@
+To insert: 
+<input id="insert" placeholder="1, 2, 3, 4" autocomplete="off">
+<br>
+To delete: 
+<input id="delete" placeholder="1, 2, 3, 4" autocomplete="off"> <br><br>
+<button type="button" onclick="main(predecessor = true)">Predecessor</button>
+<button type="button" onclick="main(predecessor = false)">Successor</button>
+<button type="button" onclick="clearResults()">Clear</button>
+<br><br>
+Create a Binary Search Tree using the data below
+<div class="insert">After insert: </div>
+<div class="delete">After delete: </div>
+<script>
+class TreeNode{
+    constructor(val) {
+        this.val = val;
+        this.left = null;
+        this.right = null;
+        this.height = 1;
+    }
+}
+
+class AVL_Tree {
+    insert(root, key) {
+        if (!root) 
+            return new TreeNode(key);
+        else if (key < root.val)
+            root.left = this.insert(root.left, key);
+        else
+            root.right = this.insert(root.right, key);
+        
+        root.height = 1 + Math.max(this.getHeight(root.left), this.getHeight(root.right));
+        let balance = this.getBalance(root);
+
+        if (balance > 1 && key < root.left.val) 
+            return this.rightRotate(root);
+
+        if (balance < -1 && key > root.right.val) 
+            return this.leftRotate(root);
+        
+        if (balance > 1 && key > root.left.val){
+            root.left = this.leftRotate(root.left);
+            return this.rightRotate(root)
+        }
+
+        if (balance < -1 && key < root.right.val) {
+            root.right = this.rightRotate(root.right)
+            return this.leftRotate(root);
+        }
+
+        return root;
+    }
+
+    delete(root, key, prede) {
+
+        if (!root) 
+            return root;
+
+        else if (key < root.val)
+            root.left = this.delete(root.left, key, prede);
+        
+        else if (key > root.val)
+            root.right = this.delete(root.right, key, prede);
+        
+        else {
+            let temp;
+            if (root.left == null) {
+                temp = root.right;
+                root = null;
+                return temp;
+            }
+
+            else if (root.right == null) {
+                temp = root.left;
+                root = null;
+                return temp;
+            }
+
+            if (prede)
+                temp = this.getMaxValueNode(root.left);
+            else
+                temp = this.getMinValueNode(root.right);
+            root.val = temp.val;
+            if (prede)
+                root.left = this.delete(root.left, temp.val, prede);
+            else 
+                root.right = this.delete(root.right, temp.val, prede);
+        }
+
+        if (root == null) 
+            return root;
+        
+        root.height = 1 + Math.max(this.getHeight(root.left), this.getHeight(root.right));
+
+        let balance = this.getBalance(root);
+
+        if (balance > 1 && this.getBalance(root.left) >= 0)
+            return this.rightRotate(root)
+  
+        if (balance < -1 && this.getBalance(root.right) <= 0)
+            return this.leftRotate(root)
+  
+        if (balance > 1 && this.getBalance(root.left) < 0) {
+            root.left = this.leftRotate(root.left);
+            return this.rightRotate(root);
+        }
+  
+        if (balance < -1 && this.getBalance(root.right) > 0) {
+            root.right = this.rightRotate(root.right);
+            return this.leftRotate(root);
+        }
+
+        return root
+    }
+
+    leftRotate(z) {
+        let y = z.right;
+        let T2 = y.left;
+
+        y.left = z;
+        z.right = T2;
+
+        z.height = 1 + Math.max(this.getHeight(z.left), this.getHeight(z.right));
+        y.height = 1 + Math.max(this.getHeight(y.left), this.getHeight(y.right));
+
+        return y
+    }
+
+    rightRotate(z) {
+        let y = z.left
+        let T3 = y.right
+  
+        y.right = z
+        z.left = T3
+  
+        z.height = 1 + Math.max(this.getHeight(z.left), this.getHeight(z.right));
+        y.height = 1 + Math.max(this.getHeight(y.left), this.getHeight(y.right));
+  
+        return y
+    }
+
+    getHeight(root) {
+        if (!root)
+            return 0;
+        
+        return root.height;
+    }
+
+    getBalance(root) {
+        if (!root)
+            return 0;
+  
+        return this.getHeight(root.left) - this.getHeight(root.right);
+    }
+
+    getMinValueNode(root) {
+        if (root == null || root.left == null)
+            return root;
+  
+        return this.getMinValueNode(root.left)
+    }
+
+    getMaxValueNode(root) {
+        if (root == null || root.right == null)
+            return root;
+  
+        return this.getMaxValueNode(root.right);
+    }
+
+    preOrder(root, process){
+        if (!root)
+            return
+  
+        document.getElementsByClassName(process)[0].innerHTML += `${root.val} &nbsp;`; 
+        this.preOrder(root.left, process);
+        this.preOrder(root.right, process);
+    }
+}
+
+function main(predecessor) {
+    let myTree = new AVL_Tree();
+    let root = null;
+    let insertkeys = document.getElementById("insert").value;
+    let tempnums = insertkeys.split(',');
+    let nums = [];
+    for (num of tempnums)
+        nums.push(Number(num.replace(" ", "")));
+    for (num of nums)
+        root = myTree.insert(root, num);
+
+    myTree.preOrder(root, "insert");
+
+    let deletekeys = document.getElementById("delete").value;
+    let tempkeys = deletekeys.split(',');
+    let keys = [];
+    for (key of tempkeys)
+        keys.push(Number(key.replace(" ", "")));
+    for (key of keys)
+        root = myTree.delete(root, key, predecessor);
+
+    myTree.preOrder(root, "delete")
+}
+
+function clearResults() {
+    document.getElementsByClassName("insert")[0].innerHTML = "After insert: ";
+    document.getElementsByClassName("delete")[0].innerHTML = "After delete: ";
+}
+</script>
